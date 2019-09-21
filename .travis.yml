@@ -1,0 +1,22 @@
+language: generic
+sudo: required
+services:
+        - docker
+
+before_install:
+        - docker build -t shahin/react-test -f ./client/Dockerfile.dev
+script:
+        - docker run -e CI=true USERNAME/react-test npm test
+
+after_success:
+        - docker build -t shahin/multi-client ./client
+        - docker build -t shahin/multi-nginx ./nginx
+        - docker build -t shahin/multi-server ./server
+        - docker build -t shahin/multi-worker ./worker
+        # Log in to the docker CLI
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+        #take these images and push to docker hub
+        - docker push shahin/multi-client
+        - docker push shahin/multi-nginx
+        - docker push shahin/multi-server
+        - docker push shahin/multi-worker
